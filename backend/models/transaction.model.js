@@ -10,7 +10,7 @@ const transactionSchema = new mongoose.Schema({
         required: true
     },
     price : {
-        type : Number,
+        type : String,
         required : true
     },
     description : {
@@ -29,7 +29,7 @@ const transactionSchema = new mongoose.Schema({
         required : true
     },
     dateOfSale : {
-        type : String,
+        type : Date,
         required : true
     }
 })
