@@ -1,5 +1,5 @@
 import express from 'express';
-import { listTransactions, SeedDatabase } from '../controllers/transaction.controller.js';
+import { getStatistics, listTransactions, SeedDatabase } from '../controllers/transaction.controller.js';
 
 const router = express.Router()
 
@@ -7,5 +7,7 @@ const router = express.Router()
 router.get("/seed", SeedDatabase)
 
 router.get("/", listTransactions)
+
+router.get("/statistics", getStatistics)
 
 export default router;

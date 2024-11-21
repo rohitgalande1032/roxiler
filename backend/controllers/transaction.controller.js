@@ -64,5 +64,43 @@ export const listTransactions = async (req, res) => {
         error: error.message,
       });
     }
-  };
+};
   
+export const getStatistics = async(req, res) => {
+    try {
+        const {month} = req.query; //get month from query parameter
+
+        if(!month || isNaN(month) || month < 1 || month > 12){
+            return res.status(400).json({message: "Invalid or missing month parameter.."})
+        }
+
+        const monthNumber = parseInt(month);
+
+        const transactions = await Transaction.find({
+            $expr: { $eq: [{ $month: "$dateOfSale" }, monthNumber] }
+        });
+
+        // Calculate statistics
+        let totalSaleAmount = 0.0;
+        let totalSoldItems = 0;
+        let totalNotSoldItems = 0;
+
+        transactions.forEach(txn => {
+            if (txn.sold) {
+                totalSaleAmount += parseFloat(txn.price);
+                totalSoldItems++;
+            } else {
+                totalNotSoldItems++;
+            }
+        });
+
+        res.json({
+            "Total sale amount": parseFloat(totalSaleAmount.toFixed(2)),
+            "Total sold items": totalSoldItems,
+            "Total Unsold items": totalNotSoldItems
+        })
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message: "Failed to fetch statistics."})
+    }
+}
