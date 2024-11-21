@@ -52,17 +52,17 @@ export const listTransactions = async (req, res) => {
         .skip((page - 1) * perPage)
         .limit(perPage);
   
-      res.status(200).json({
+    
+      console.log("Transactions : ", totalRecords)
+      return {
         totalRecords,
         currentPage: page,
         perPage,
         transactions,
-      });
+      };
     } catch (error) {
-      res.status(500).json({
-        message: "Failed to fetch transactions",
-        error: error.message,
-      });
+        console.error("Error listing transactions:", error);
+        throw new Error("Failed to fetch transactions");
     }
 };
   
@@ -94,14 +94,24 @@ export const getStatistics = async(req, res) => {
             }
         });
 
-        res.json({
-            "Total sale amount": parseFloat(totalSaleAmount.toFixed(2)),
-            "Total sold items": totalSoldItems,
-            "Total Unsold items": totalNotSoldItems
-        })
+        const statistics = {
+            totalSaleAmount : parseFloat(totalSaleAmount.toFixed(2)),
+            totalSoldItems,
+            totalNotSoldItems
+        }
+
+        // res.json({
+        //     "Total sale amount": parseFloat(totalSaleAmount.toFixed(2)),
+        //     "Total sold items": totalSoldItems,
+        //     "Total Unsold items": totalNotSoldItems
+        // })
+        console.log("Statistics : ", statistics)
+        return statistics
+
+        
     } catch (error) {
         console.error(error)
-        res.status(500).json({message: "Failed to fetch statistics."})
+        throw new error("Failed to fetch statistics.")
     }
 }
 
@@ -149,10 +159,12 @@ export const getBarChart = async (req, res) => {
         // Format response
         const response = priceRanges.map(({ range, count }) => ({ range, count }));
 
-        res.json(response);
+        console.log("Bar chart data : ", response)
+        // res.json(response);
+        return response
     } catch (error) {
         console.error("Error fetching bar chart data:", error);
-        res.status(500).json({ message: "Failed to fetch bar chart data", error });
+        throw new Error("Failed to fetch bar chart data")
     }
 };
 
@@ -160,142 +172,50 @@ export const getBarChart = async (req, res) => {
 // Find unique categories from transactions of the selected month.
 // Count the number of items in each category.
 
-export const getPieChart = async (req,res) => {
+export const getPieChart = async (req) => {
     try {
-        const {month} = req.query
-
-        if(!month || isNaN(month) || month < 1 || month > 12){
-            res.status(400).json({message: "Invalid or missing month"})
+      const { month } = req.query;
+  
+      // Validate month parameter
+      if (!month || isNaN(month) || month < 1 || month > 12) {
+        throw new Error("Invalid or missing month parameter");
+      }
+  
+      const monthNumber = parseInt(month);
+  
+      // Fetch transactions for the selected month
+      const transactions = await Transaction.find({
+        $expr: { $eq: [{ $month: "$dateOfSale" }, monthNumber] },
+      });
+  
+      // If no transactions are found
+      if (transactions.length === 0) {
+        return [];
+      }
+  
+      // Calculate unique categories and their counts
+      const categoryCounts = {};
+      transactions.forEach((txn) => {
+        const category = txn.category || "Unknown";
+        if (categoryCounts[category]) {
+          categoryCounts[category] += 1;
+        } else {
+          categoryCounts[category] = 1;
         }
-
-        const monthNumber = parseInt(month)
-
-        // fetch transactions for selected months
-        const transactions = await Transaction.find({
-            $expr: { $eq: [{$month: "$dateOfSale"}, monthNumber]}
-        })
-
-        //calculate uniqueue categories and their counts
-        const categoryCounts = {}
-        transactions.forEach((txn) => {
-            const category = txn.category || "Unknown";
-            // categoryCounts[category] = (categoryCounts[category] || 0) + 1;
-            if(categoryCounts[category]){
-                categoryCounts[category] +=1
-            }else{
-                categoryCounts[category] = 1
-            }
-        })
-
-        //format response - converts the categoryCounts object into an array of objects, where each object represents a category and its count {"electronics": 5}
-        const response = Object.entries(categoryCounts).map(([category, count]) => ({
-            category,
-            count,
-        }))
-
-        //send response
-        res.json(response)
+      });
+  
+      // Format response
+      const response = Object.entries(categoryCounts).map(([category, count]) => ({
+        category,
+        count,
+      }));
+  
+      console.log("Pir chart data : ", response)
+      // Return the data
+      return response;
     } catch (error) {
-        console.error(error)
-        res.status(500).json({message : "Failed to fetch pie chart data", error})
+      console.error("Error fetching pie chart data:", error);
+      throw new Error("Failed to fetch pie chart data");
     }
-}
-
-
-
-// export const getCombinedData = async (req, res) => {
-//     const { month } = req.query;
-
-//     // Validate month
-//     if (!month || !/^(0[1-9]|1[0-2])$/.test(month)) {
-//         return res.status(400).json({
-//             message: "Invalid or missing month. Please provide a valid month (01-12).",
-//         });
-//     }
-
-//     try {
-//         // Fetch statistics data
-//         const statisticsData = await Transaction.aggregate([
-//             {
-//                 $match: {
-//                     dateOfSale: { $regex: `^\\d{4}-${month}` }, // Match year-month (e.g., 2022-03)
-//                 },
-//             },
-//             {
-//                 $group: {
-//                     _id: null,
-//                     totalSaleAmount: { $sum: "$price" },
-//                     totalSoldItems: { $sum: { $cond: [{ $eq: ["$sold", true] }, 1, 0] } },
-//                     totalNotSoldItems: { $sum: { $cond: [{ $eq: ["$sold", false] }, 1, 0] } },
-//                 },
-//             },
-//         ]);
-
-//         const stats = statisticsData[0] || {
-//             totalSaleAmount: 0,
-//             totalSoldItems: 0,
-//             totalNotSoldItems: 0,
-//         };
-
-//         // Fetch bar chart data
-//         const ranges = [
-//             { min: 0, max: 100 },
-//             { min: 101, max: 200 },
-//             { min: 201, max: 300 },
-//             { min: 301, max: 400 },
-//             { min: 401, max: 500 },
-//             { min: 501, max: 600 },
-//             { min: 601, max: 700 },
-//             { min: 701, max: 800 },
-//             { min: 801, max: 900 },
-//             { min: 901, max: Infinity },
-//         ];
-
-//         const barChart = await Promise.all(
-//             ranges.map(async (range) => {
-//                 const count = await Transaction.countDocuments({
-//                     dateOfSale: { $regex: `^\\d{4}-${month}` },
-//                     price: { $gte: range.min, $lt: range.max },
-//                 });
-//                 return {
-//                     range: `${range.min}-${range.max === Infinity ? "above" : range.max}`,
-//                     count,
-//                 };
-//             })
-//         );
-
-//         // Fetch pie chart data
-//         const pieChart = await Transaction.aggregate([
-//             {
-//                 $match: {
-//                     dateOfSale: { $regex: `^\\d{4}-${month}` }, // Match year-month for pie chart
-//                 },
-//             },
-//             {
-//                 $group: {
-//                     _id: "$category",
-//                     count: { $sum: 1 },
-//                 },
-//             },
-//         ]).map((cat) => ({
-//             category: cat._id,
-//             count: cat.count,
-//         }));
-
-//         // Combine data
-//         const combinedData = {
-//             statistics: stats,
-//             barChart: barChart,
-//             pieChart: pieChart,
-//         };
-
-//         // Send response
-//         res.status(200).json(combinedData);
-//     } catch (error) {
-//         console.error("Error fetching combined data:", error.message);
-//         res.status(500).json({
-//             message: "Error fetching combined data",
-//             error: error.message,
-//         });
-//     }
-// };
+  };
+  
