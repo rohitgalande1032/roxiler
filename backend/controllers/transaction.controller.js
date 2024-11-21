@@ -155,3 +155,48 @@ export const getBarChart = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch bar chart data", error });
     }
 };
+
+
+// Find unique categories from transactions of the selected month.
+// Count the number of items in each category.
+
+export const getPieChart = async (req,res) => {
+    try {
+        const {month} = req.query
+
+        if(!month || isNaN(month) || month < 1 || month > 12){
+            res.status(400).json({message: "Invalid or missing month"})
+        }
+
+        const monthNumber = parseInt(month)
+
+        // fetch transactions for selected months
+        const transactions = await Transaction.find({
+            $expr: { $eq: [{$month: "$dateOfSale"}, monthNumber]}
+        })
+
+        //calculate uniqueue categories and their counts
+        const categoryCounts = {}
+        transactions.forEach((txn) => {
+            const category = txn.category || "Unknown";
+            // categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+            if(categoryCounts[category]){
+                categoryCounts[category] +=1
+            }else{
+                categoryCounts[category] = 1
+            }
+        })
+
+        //format response - converts the categoryCounts object into an array of objects, where each object represents a category and its count {"electronics": 5}
+        const response = Object.entries(categoryCounts).map(([category, count]) => ({
+            category,
+            count,
+        }))
+
+        //send response
+        res.json(response)
+    } catch (error) {
+        console.error(error)
+        res.status(500).json({message : "Failed to fetch pie chart data", error})
+    }
+}

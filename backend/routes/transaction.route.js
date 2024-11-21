@@ -1,5 +1,5 @@
 import express from 'express';
-import { getBarChart, getStatistics, listTransactions, SeedDatabase } from '../controllers/transaction.controller.js';
+import { getBarChart, getPieChart, getStatistics, listTransactions, SeedDatabase } from '../controllers/transaction.controller.js';
 
 const router = express.Router()
 
@@ -11,5 +11,7 @@ router.get("/", listTransactions)
 router.get("/statistics", getStatistics)
 
 router.get("/bar-chart", getBarChart)
+
+router.get("/pie-chart", getPieChart)
 
 export default router;
