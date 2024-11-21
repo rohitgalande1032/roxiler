@@ -104,3 +104,54 @@ export const getStatistics = async(req, res) => {
         res.status(500).json({message: "Failed to fetch statistics."})
     }
 }
+
+export const getBarChart = async (req, res) => {
+    try {
+        const { month } = req.query;
+
+        if (!month || isNaN(month) || month < 1 || month > 12) {
+            return res.status(400).json({ message: "Invalid or missing month parameter" });
+        }
+
+        //convert month string to number
+        const monthNumber = parseInt(month);
+
+        // Fetch all transactions for the given month
+        const transactions = await Transaction.find({
+            $expr: { $eq: [{ $month: "$dateOfSale" }, monthNumber] }
+        });
+
+        // Define price ranges
+        const priceRanges = [
+            { range: "0-100", min: 0, max: 100, count: 0 },
+            { range: "101-200", min: 101, max: 200, count: 0 },
+            { range: "201-300", min: 201, max: 300, count: 0 },
+            { range: "301-400", min: 301, max: 400, count: 0 },
+            { range: "401-500", min: 401, max: 500, count: 0 },
+            { range: "501-600", min: 501, max: 600, count: 0 },
+            { range: "601-700", min: 601, max: 700, count: 0 },
+            { range: "701-800", min: 701, max: 800, count: 0 },
+            { range: "801-900", min: 801, max: 900, count: 0 },
+            { range: "901+", min: 901, max: Infinity, count: 0 },
+        ];
+
+        // Calculate items in each range
+        transactions.forEach(txn => {
+            const price = parseFloat(txn.price);
+            for (const range of priceRanges) {
+                if (price >= range.min && price <= range.max) {
+                    range.count++;
+                    break;
+                }
+            }
+        });
+
+        // Format response
+        const response = priceRanges.map(({ range, count }) => ({ range, count }));
+
+        res.json(response);
+    } catch (error) {
+        console.error("Error fetching bar chart data:", error);
+        res.status(500).json({ message: "Failed to fetch bar chart data", error });
+    }
+};
