@@ -200,3 +200,102 @@ export const getPieChart = async (req,res) => {
         res.status(500).json({message : "Failed to fetch pie chart data", error})
     }
 }
+
+
+
+// export const getCombinedData = async (req, res) => {
+//     const { month } = req.query;
+
+//     // Validate month
+//     if (!month || !/^(0[1-9]|1[0-2])$/.test(month)) {
+//         return res.status(400).json({
+//             message: "Invalid or missing month. Please provide a valid month (01-12).",
+//         });
+//     }
+
+//     try {
+//         // Fetch statistics data
+//         const statisticsData = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     dateOfSale: { $regex: `^\\d{4}-${month}` }, // Match year-month (e.g., 2022-03)
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: null,
+//                     totalSaleAmount: { $sum: "$price" },
+//                     totalSoldItems: { $sum: { $cond: [{ $eq: ["$sold", true] }, 1, 0] } },
+//                     totalNotSoldItems: { $sum: { $cond: [{ $eq: ["$sold", false] }, 1, 0] } },
+//                 },
+//             },
+//         ]);
+
+//         const stats = statisticsData[0] || {
+//             totalSaleAmount: 0,
+//             totalSoldItems: 0,
+//             totalNotSoldItems: 0,
+//         };
+
+//         // Fetch bar chart data
+//         const ranges = [
+//             { min: 0, max: 100 },
+//             { min: 101, max: 200 },
+//             { min: 201, max: 300 },
+//             { min: 301, max: 400 },
+//             { min: 401, max: 500 },
+//             { min: 501, max: 600 },
+//             { min: 601, max: 700 },
+//             { min: 701, max: 800 },
+//             { min: 801, max: 900 },
+//             { min: 901, max: Infinity },
+//         ];
+
+//         const barChart = await Promise.all(
+//             ranges.map(async (range) => {
+//                 const count = await Transaction.countDocuments({
+//                     dateOfSale: { $regex: `^\\d{4}-${month}` },
+//                     price: { $gte: range.min, $lt: range.max },
+//                 });
+//                 return {
+//                     range: `${range.min}-${range.max === Infinity ? "above" : range.max}`,
+//                     count,
+//                 };
+//             })
+//         );
+
+//         // Fetch pie chart data
+//         const pieChart = await Transaction.aggregate([
+//             {
+//                 $match: {
+//                     dateOfSale: { $regex: `^\\d{4}-${month}` }, // Match year-month for pie chart
+//                 },
+//             },
+//             {
+//                 $group: {
+//                     _id: "$category",
+//                     count: { $sum: 1 },
+//                 },
+//             },
+//         ]).map((cat) => ({
+//             category: cat._id,
+//             count: cat.count,
+//         }));
+
+//         // Combine data
+//         const combinedData = {
+//             statistics: stats,
+//             barChart: barChart,
+//             pieChart: pieChart,
+//         };
+
+//         // Send response
+//         res.status(200).json(combinedData);
+//     } catch (error) {
+//         console.error("Error fetching combined data:", error.message);
+//         res.status(500).json({
+//             message: "Error fetching combined data",
+//             error: error.message,
+//         });
+//     }
+// };
