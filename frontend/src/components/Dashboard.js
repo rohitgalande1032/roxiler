@@ -16,7 +16,10 @@ const Dashboard = () => {
       />
       <StatisticsBox selectedMonth={selectedMonth} />
       <TransactionsTable selectedMonth={selectedMonth} />
+      <div className='bar-chart'>
       <BarChart selectedMonth={selectedMonth} />
+      </div>
+      
     </div>
   );
 };
