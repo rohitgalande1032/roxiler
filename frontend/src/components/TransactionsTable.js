@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import PropTypes from "prop-types";
 
-const TransactionsTable = ({ selectedMonth, searchQuery }) => {
+const TransactionsTable = ({ selectedMonth }) => {
   const [transactions, setTransactions] = useState([]);
   const [error, setError] = useState(null);
 
@@ -24,7 +25,7 @@ const TransactionsTable = ({ selectedMonth, searchQuery }) => {
 
   useEffect(() => {
     fetchTransactions();
-  }, [selectedMonth, searchQuery]);
+  }, [selectedMonth]);
 
   if (error) return <div>Error: {error}</div>;
 
@@ -54,6 +55,10 @@ const TransactionsTable = ({ selectedMonth, searchQuery }) => {
       )}
     </div>
   );
+};
+
+TransactionsTable.propTypes = {
+  selectedMonth: PropTypes.string.isRequired,
 };
 
 export default TransactionsTable;

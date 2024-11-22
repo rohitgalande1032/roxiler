@@ -5,7 +5,7 @@ import StatisticsBox from './StatisticsBox';
 import BarChart from './BarChart';
 
 const Dashboard = () => {
-  const [selectedMonth, setSelectedMonth] = useState(11); // Default to March
+  const [selectedMonth, setSelectedMonth] = useState(3); // Default to March
 
   return (
     <div>
