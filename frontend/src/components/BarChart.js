@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Chart, BarElement, CategoryScale, LinearScale, Tooltip, Legend } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
-// Register necessary components
 Chart.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
 const BarChartComponent = ({ selectedMonth }) => {
