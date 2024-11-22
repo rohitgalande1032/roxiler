@@ -54,12 +54,12 @@ export const listTransactions = async (req, res) => {
   
     
       console.log("Transactions : ", totalRecords)
-      return {
+      res.json({
         totalRecords,
         currentPage: page,
         perPage,
         transactions,
-      };
+      });
     } catch (error) {
         console.error("Error listing transactions:", error);
         throw new Error("Failed to fetch transactions");
@@ -94,19 +94,19 @@ export const getStatistics = async(req, res) => {
             }
         });
 
-        const statistics = {
-            totalSaleAmount : parseFloat(totalSaleAmount.toFixed(2)),
+        // const statistics = {
+        //     totalSaleAmount : parseFloat(totalSaleAmount.toFixed(2)),
+        //     totalSoldItems,
+        //     totalNotSoldItems
+        // }
+
+        res.json({
+            totalSale : parseFloat(totalSaleAmount.toFixed(2)),
             totalSoldItems,
             totalNotSoldItems
-        }
-
-        // res.json({
-        //     "Total sale amount": parseFloat(totalSaleAmount.toFixed(2)),
-        //     "Total sold items": totalSoldItems,
-        //     "Total Unsold items": totalNotSoldItems
-        // })
-        console.log("Statistics : ", statistics)
-        return statistics
+        })
+        // console.log("Statistics : ", statistics)
+        // return statistics
 
         
     } catch (error) {
@@ -160,8 +160,8 @@ export const getBarChart = async (req, res) => {
         const response = priceRanges.map(({ range, count }) => ({ range, count }));
 
         console.log("Bar chart data : ", response)
-        // res.json(response);
-        return response
+        res.json(response);
+        // return response
     } catch (error) {
         console.error("Error fetching bar chart data:", error);
         throw new Error("Failed to fetch bar chart data")
@@ -212,7 +212,7 @@ export const getPieChart = async (req) => {
   
       console.log("Pir chart data : ", response)
       // Return the data
-      return response;
+      res.json(response);
     } catch (error) {
       console.error("Error fetching pie chart data:", error);
       throw new Error("Failed to fetch pie chart data");
